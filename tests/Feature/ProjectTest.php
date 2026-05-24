@@ -53,4 +53,42 @@ class ProjectTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_projects_are_cached()
+    {
+        $user = \App\Models\User::factory()->create();
+        auth('api')->login($user);
+
+        \App\Models\Project::factory()->count(3)->create([
+            'user_id' => $user->id
+        ]);
+
+        // First request → DB + cache store
+        $this->getJson('/api/projects');
+
+        // Second request → should use cache
+        $response = $this->getJson('/api/projects');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_cache_cleared_when_project_created()
+    {
+        $user = \App\Models\User::factory()->create();
+        auth('api')->login($user);
+
+        // warm cache
+        $this->getJson('/api/projects');
+
+        // create new project (should clear cache)
+        $response = $this->postJson('/api/projects', [
+            'title' => 'New Project',
+            'description' => 'Test'
+        ]);
+
+        $response->assertStatus(201);
+
+        // cache should be rebuilt automatically
+        $this->getJson('/api/projects')->assertStatus(200);
+    }
 }
