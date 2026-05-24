@@ -144,7 +144,7 @@ Make sure you have installed:
 
 ## 1️⃣ Clone Repository
 
-git clone https://github.com/your-username/task-management-api.git
+git clone https://github.com/sanafiaz511/task-management-api.git
 cd task-management-api
 
 ---
