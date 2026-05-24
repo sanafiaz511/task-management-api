@@ -42,7 +42,7 @@ class ProjectController extends Controller
         $project = CacheService::remember("project:$id", 60, function () use ($id) {
             return auth('api')->user()->projects()->findOrFail($id);
         });
-
+        $this->authorize('view', $project);
         return response()->json($project);
     }
 
