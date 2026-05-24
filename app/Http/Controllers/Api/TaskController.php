@@ -10,6 +10,7 @@ use App\Http\Requests\StoreTaskRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Jobs\SendTaskCreatedEmailJob;
 use App\Services\CacheService;
+use App\Events\TaskCreated;
 
 class TaskController extends Controller
 {
@@ -37,6 +38,7 @@ class TaskController extends Controller
         $task = $project->tasks()->create($request->validated());
 
         SendTaskCreatedEmailJob::dispatch($task);
+        event(new TaskCreated($task));
 
         CacheService::forget("tasks:project:" . $project->id);
 
