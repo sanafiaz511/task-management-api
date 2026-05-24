@@ -8,6 +8,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreTaskRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Jobs\SendTaskCreatedEmailJob;
 
 class TaskController extends Controller
 {
@@ -27,12 +28,13 @@ class TaskController extends Controller
     // CREATE task
     public function store(StoreTaskRequest $request)
     {
-        // 🔐 Ensure project belongs to user
+        // Ensure project belongs to user
         $project = auth('api')->user()
             ->projects()
             ->findOrFail($request->project_id);
 
         $task = $project->tasks()->create($request->validated());
+        SendTaskCreatedEmailJob::dispatch($task);
 
         return response()->json([
             'message' => 'Task created successfully',
