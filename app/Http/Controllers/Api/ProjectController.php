@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreProjectRequest;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ProjectController extends Controller
 {
+    use AuthorizesRequests;
     // GET /projects
     public function index()
     {
@@ -37,9 +39,9 @@ class ProjectController extends Controller
     }
 
     // PUT /projects/{id}
-    public function update(StoreProjectRequest $request, $id)
+    public function update(StoreProjectRequest $request, Project $project)
     {
-        $project = auth('api')->user()->projects()->findOrFail($id);
+        $this->authorize('update', $project);
 
         $project->update($request->validated());
 

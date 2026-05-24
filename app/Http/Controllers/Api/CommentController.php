@@ -7,9 +7,11 @@ use App\Models\Comment;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreCommentRequest;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class CommentController extends Controller
 {
+    use AuthorizesRequests;
     // GET comments for a task
     public function index(Request $request)
     {
@@ -42,15 +44,14 @@ class CommentController extends Controller
     }
 
     // DELETE comment
-    public function destroy($id)
+    public function destroy(Comment $comment)
     {
-        $comment = Comment::where('user_id', auth('api')->id())
-            ->findOrFail($id);
+        $this->authorize('delete', $comment);
 
         $comment->delete();
 
         return response()->json([
-            'message' => 'Comment deleted successfully'
+            'message' => 'Comment deleted'
         ]);
     }
 }

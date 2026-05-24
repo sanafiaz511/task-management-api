@@ -7,9 +7,11 @@ use App\Models\Task;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreTaskRequest;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class TaskController extends Controller
 {
+    use AuthorizesRequests;
     // GET tasks under a project
     public function index(Request $request)
     {
@@ -49,18 +51,13 @@ class TaskController extends Controller
     }
 
     // UPDATE task
-    public function update(StoreTaskRequest $request, $id)
+    public function update(StoreTaskRequest $request, Task $task)
     {
-        $task = Task::whereHas('project', function ($q) {
-            $q->where('user_id', auth('api')->id());
-        })->findOrFail($id);
+        $this->authorize('update', $task);
 
         $task->update($request->validated());
 
-        return response()->json([
-            'message' => 'Task updated successfully',
-            'data' => $task
-        ]);
+        return response()->json($task);
     }
 
     // DELETE task
