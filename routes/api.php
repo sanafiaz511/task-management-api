@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\CommentController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -19,4 +20,5 @@ Route::middleware('auth:api')->get('/me', function () {
 Route::middleware('auth:api')->group(function () {
     Route::apiResource('projects', ProjectController::class);
     Route::apiResource('tasks', TaskController::class);
+    Route::apiResource('comments', CommentController::class);
 });
