@@ -9,32 +9,36 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreTaskRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Jobs\SendTaskCreatedEmailJob;
+use App\Services\CacheService;
 
 class TaskController extends Controller
 {
     use AuthorizesRequests;
+
     // GET tasks under a project
     public function index(Request $request)
     {
-        $project = auth('api')->user()
-            ->projects()
-            ->findOrFail($request->project_id);
+        $projectId = $request->project_id;
 
-        return response()->json(
-            $project->tasks()->latest()->get()
-        );
+        $project = auth('api')->user()->projects()->findOrFail($projectId);
+
+        return CacheService::remember("tasks:project:$projectId", 60, function () use ($project) {
+            return $project->tasks()->latest()->get();
+        });
     }
 
     // CREATE task
     public function store(StoreTaskRequest $request)
     {
-        // Ensure project belongs to user
         $project = auth('api')->user()
             ->projects()
             ->findOrFail($request->project_id);
 
         $task = $project->tasks()->create($request->validated());
+
         SendTaskCreatedEmailJob::dispatch($task);
+
+        CacheService::forget("tasks:project:" . $project->id);
 
         return response()->json([
             'message' => 'Task created successfully',
@@ -59,6 +63,9 @@ class TaskController extends Controller
 
         $task->update($request->validated());
 
+        CacheService::forget("task:" . $task->id);
+        CacheService::forget("tasks:project:" . $task->project_id);
+
         return response()->json($task);
     }
 
@@ -70,6 +77,9 @@ class TaskController extends Controller
         })->findOrFail($id);
 
         $task->delete();
+
+        CacheService::forget("task:" . $task->id);
+        CacheService::forget("tasks:project:" . $task->project_id);
 
         return response()->json([
             'message' => 'Task deleted successfully'
