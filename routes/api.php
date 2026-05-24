@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProjectController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -11,5 +12,9 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware('auth:api')->get('/me', function () {
-    return auth()->user();
+    return auth('api')->user();
+});
+
+Route::middleware('auth:api')->group(function () {
+    Route::apiResource('projects', ProjectController::class);
 });
